@@ -31,9 +31,13 @@ p_load(data.table, magrittr, rvest, stringi, tidyverse)
 # Create URLs for scraping #
 #--------------------------#
 
-# Create base URL for each year
-year <- seq(from = 2025, to = 2025, 1) # data available from 1919 onwards
-base_url <- paste0("https://aviation-safety.net/database/dblist.php?Year=", year)
+# Define the range of years
+year_range <- seq(from = 2011, to = 2021, 1)
+
+# Function to scrape and save data for a specific year
+scrape_and_save <- function(year) {
+  # Create the base URL for the current year
+  base_url <- paste0("https://aviation-safety.net/database/dblist.php?Year=", year)
 
 # Get page numbers for each year
 get_pagenumber <- function(url) {
@@ -207,8 +211,19 @@ detail_data_list <- detail_data_list[!sapply(detail_data_list, is.null)]
 # 合并所有详情数据为一个数据框
 all_details_df <- bind_rows(detail_data_list)
 
+# 生成文件名，确保每年都有不同的文件
+file_name <- paste0(year, "_accident_details.csv")
+
 # 保存整合后的数据为 CSV 文件
-write.csv(all_details_df, "accident_details.csv", row.names = FALSE)
+write.csv(all_details_df, file_name, row.names = FALSE)
+
+message(paste("Data for year", year, "saved to", file_name))
+}
+
+# Loop through each year in the range and scrape/save data
+for (year in year_range) {
+  scrape_and_save(year)
+}
 #######################################################################################
 ##以下代码可以输出粗略数据
 # aviationsafetynet_accident_data <- lapply(urls, get_table)
@@ -225,3 +240,4 @@ write.csv(all_details_df, "accident_details.csv", row.names = FALSE)
 #          damage = dmg)
 # # Export data
 # write.csv(aviationsafetynet_accident_data, "aviationsafetynet_accident_data.csv", row.names = FALSE)
+
